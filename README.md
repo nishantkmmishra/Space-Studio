@@ -1,95 +1,60 @@
-# 🌌 Space Dashboard
+# 🌌 Space Studio
 
-> [!IMPORTANT]
-> **Project Under Construction**
-> This project is currently in active development. The Discord bot component is under construction; currently, only the **Space Studio Dashboard** is available for management and configuration.
+> **A quiet management studio for louder communities.**
 
-Space is a premium, AI-powered management studio for Discord communities. It provides a literary, high-fidelity interface for managing knowledge bases, monitoring bot activity, and configuring AI behaviors.
+Space is a premium, AI-powered operations center for Discord. It replaces chaotic bot commands with a high-fidelity, "Literary Salon" interface designed for clarity, precision, and calm.
+
+![Space Dashboard Hero](./docs/assets/console.png)
 
 ---
 
-## ✨ Features
+## ✨ Core Modules
 
 ### 📚 Knowledge Base
-Manage the documents your bot reads from. Edit, categorize, and search through your community's library to ensure the AI always has the right answers.
-![Knowledge Base](./docs/screenshots/knowledge_base.png)
+The source of truth for your AI. Curate documentation, manage categories, and refine the context used by your RAG engine to ensure accurate community support.
+![Knowledge Base](./docs/assets/knowledge_base.png)
 
-### 💬 Conversation Insights
-Review what your bot is saying in real-time. Edit drifted answers to train the AI for better future responses.
-![Chats](./docs/screenshots/chats.png)
+### 💬 Conversations Audit
+Review every bot interaction in real-time. The "Refine" loop allows you to flag drifts and correct answers, training the bot for better future reasoning.
+![Conversations](./docs/assets/chats.png)
 
-### 🛠️ Control Room
-A centralized console to monitor bot health, view live logs, and trigger administrative commands.
-![Console](./docs/screenshots/console.png)
+### 👥 Community & Moderation
+A unified registry of your members. Track behavior, manage roles, and maintain a professional ledger of all administrative interventions.
+![Members](./docs/assets/members.png)
+![Moderation Logs](./docs/assets/mod_logs.png)
 
-### 👥 Member & Moderation Management
-Sync members directly from Discord, update roles, and maintain a clean ledger of all moderation actions.
-![Members](./docs/screenshots/members.png)
-![Mod Logs](./docs/screenshots/mod_logs.png)
-
-### ⚙️ Advanced Configuration
-Tune your bot's tone, select AI models (via OpenRouter/Gemini), and manage your database connections with ease.
-![Settings General](./docs/screenshots/settings_general.png)
-![Settings AI](./docs/screenshots/settings_ai.png)
+### ⚙️ Infrastructure
+Fine-tune your bot's personality and intelligence providers. Support for OpenRouter, Gemini, and more, all managed from a single, beautiful dashboard.
+![Settings AI](./docs/assets/settings_ai.png)
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technical Stack
 
-- **Frontend**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Components**: [Radix UI](https://www.radix-ui.com/) + [Shadcn UI](https://ui.shadcn.com/)
-- **Database & Auth**: [Supabase](https://supabase.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Monorepo**: [Turborepo](https://turbo.build/)
+- **Framework**: React 18 + Vite (SOA Architecture)
+- **State**: TanStack Query v5 + Zustand
+- **Persistence**: Supabase (PostgreSQL + RLS)
+- **Aesthetics**: Custom Design System (Warm Parchment + Serif Typography)
+- **Integrations**: Discord API (REST/SSE)
+
+---
+
+## 📖 Documentation Portal
+
+| Guide | Description |
+| :--- | :--- |
+| [🏗️ Architecture](./docs/ARCHITECTURE.md) | Deep dive into the SOA layers, services, and intelligence patterns. |
+| [🛠️ Development](./docs/DEVELOPMENT.md) | Setup instructions, environment variables, and database initialization. |
+| [🤝 Contributing](./docs/CONTRIBUTING.md) | Coding standards, git workflow, and design philosophy. |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- Node.js (v18+)
-- NPM (v9+)
-
-### 2. Installation
-```bash
-# Install dependencies
-npm install
-```
-
-### 3. Environment Setup
-Create an `.env.local` file in `apps/dashboard/` and provide your Supabase credentials:
-```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-### 4. Database Setup
-1. Create a new project at [Supabase](https://supabase.com).
-2. Execute the `supabase_schema.sql` and `supabase_rls_policies.sql` files in the Supabase SQL Editor.
-
-### 5. Launch
-```bash
-# Run the dashboard in development mode
-npm run dev
-```
+1. **Install**: `npm install`
+2. **Configure**: Set up `.env.local` in `apps/dashboard` (see [Development Guide](./docs/DEVELOPMENT.md)).
+3. **Initialize**: Execute the scripts in the `/supabase` folder.
+4. **Launch**: `npm run dev`
 
 ---
-
-## 📂 Project Structure
-```text
-.
-├── apps/
-│   └── dashboard/        # React + Vite Management Studio
-├── docs/
-│   └── screenshots/      # UI Documentation Images
-├── supabase_schema.sql   # Database Table Structures
-├── supabase_rls_policies.sql # Security & Privacy Rules
-├── package.json          # Monorepo Workspace Config
-└── GARANT.md             # Detailed System Architecture
-```
-
----
-
-## 📜 System Guide
-For a deep dive into the code structure, connections, and roadmap, please refer to the [GARANT.md](./GARANT.md) file.
+*Developed with excellence by [Nishant Kumar Mishra](https://github.com/nishantkmmishra).*

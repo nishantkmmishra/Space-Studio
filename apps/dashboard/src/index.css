@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Warm Parchment Design System ─────────────────────────────── */
+/* ── Design System ─────────────────────────────── */
 @layer base {
   :root {
     --background: 50 26% 94%;

@@ -3,115 +3,159 @@ import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { supabase } from "@/lib/supabase";
+import { modLogService, ModLogEntry, ModAction } from "@/lib/services/modlogs";
 import { toast } from "sonner";
 
-interface ModLog {
-  id: string; action: string; target_id: string; target_tag: string; moderator_id: string;
-  moderator_tag: string; reason: string; duration: string; guild_id: string; created_at: string;
-}
+const ACTIONS: (ModAction | "All")[] = ["All", "BAN", "WARN", "KICK", "MUTE"];
 
-const actionColors: Record<string, string> = {
-  BAN: "bg-destructive/10 text-destructive",
-  WARN: "bg-accent/10 text-accent",
-  KICK: "bg-foreground/8 text-foreground",
-  MUTE: "bg-secondary text-olive",
-};
-
-const actionIcons: Record<string, string> = {
-  BAN: "ban",
-  WARN: "warning",
-  KICK: "kick",
-  MUTE: "mute",
+const LOG_STYLES: Record<string, { color: string; icon: any }> = {
+  BAN: { color: "bg-destructive/5 text-destructive border-destructive/10", icon: "ban" },
+  WARN: { color: "bg-accent/5 text-accent border-accent/10", icon: "warning" },
+  KICK: { color: "bg-foreground/5 text-foreground border-foreground/10", icon: "kick" },
+  MUTE: { color: "bg-secondary text-stone border-border", icon: "mute" },
 };
 
 export default function ModLogs() {
-  const [actionFilter, setActionFilter] = useState("All");
-  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<ModAction | "All">("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: logs = [], isLoading } = useQuery({
-    queryKey: ["mod_logs"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("mod_logs").select("*").order("created_at", { ascending: false }).limit(200);
-      if (error) throw error;
-      return data as ModLog[];
-    },
+    queryKey: ["audit-logs"],
+    queryFn: () => modLogService.getAll(),
   });
 
-  const filtered = useMemo(() =>
-    logs.filter((l) =>
-      (actionFilter === "All" || l.action === actionFilter) &&
-      `${l.target_tag} ${l.moderator_tag} ${l.reason}`.toLowerCase().includes(search.toLowerCase())
-    ), [logs, search, actionFilter]);
+  const filteredLogs = useMemo(() => {
+    return logs.filter((l) => {
+      const matchesAction = activeFilter === "All" || l.action === activeFilter;
+      const content = `${l.target_tag} ${l.moderator_tag} ${l.reason}`.toLowerCase();
+      const matchesSearch = content.includes(searchTerm.toLowerCase());
+      return matchesAction && matchesSearch;
+    });
+  }, [logs, activeFilter, searchTerm]);
 
-  const exportCSV = () => {
-    const header = "Time,Action,Target,Moderator,Reason,Duration";
-    const rows = filtered.map((l) =>
-      [new Date(l.created_at).toISOString(), l.action, l.target_tag, l.moderator_tag, l.reason, l.duration || ""].join(",")
-    );
-    const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "mod-logs.csv";
-    a.click();
-    toast.success("Exported CSV");
+  const handleExport = () => {
+    if (filteredLogs.length === 0) {
+      toast.error("No records to export");
+      return;
+    }
+    modLogService.exportToCSV(filteredLogs);
+    toast.success("Audit trail exported successfully");
   };
 
   return (
-    <div className="px-10 py-10 max-w-[1240px] mx-auto">
-      <PageHeader eyebrow="Moderation" title="The ledger."
-        subtitle="Every ban, kick, warn, and mute is recorded here. Filter, search, and export.">
-        <button onClick={exportCSV} className="h-9 px-3.5 rounded-lg bg-card border border-border text-[13px] text-olive font-medium hover:bg-secondary flex items-center gap-1.5 transition-colors">
-          <Icon name="download" size={13} strokeWidth={1.8} /> Export CSV
+    <main className="max-w-[1240px] mx-auto px-10 py-12 space-y-10">
+      <PageHeader 
+        category="Moderation" 
+        title="Logs"
+        subtitle="Review the history of administrative interventions and moderation events."
+      >
+        <button 
+          onClick={handleExport}
+          className="h-10 px-5 rounded-xl bg-card border border-border text-[13px] font-bold text-olive hover:bg-secondary flex items-center gap-2.5 transition-all shadow-sm"
+        >
+          <Icon name="download" size={14} strokeWidth={2.5} /> 
+          Export Dataset
         </button>
       </PageHeader>
 
-      <div className="flex items-center gap-3 mb-5">
-        <div className="flex gap-1.5">
-          {["All", "BAN", "WARN", "KICK", "MUTE"].map((a) => (
-            <button key={a} onClick={() => setActionFilter(a)}
-              className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${actionFilter === a ? "bg-foreground text-background border-foreground" : "bg-card text-olive border-border hover:border-accent hover:text-accent"}`}>{a}</button>
+      <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+          {ACTIONS.map((action) => (
+            <button 
+              key={action} 
+              onClick={() => setActiveFilter(action)}
+              className={`px-4 py-2 rounded-xl text-[12.5px] font-bold border transition-all whitespace-nowrap ${
+                activeFilter === action 
+                  ? "bg-foreground text-background border-foreground shadow-sm" 
+                  : "bg-card text-stone border-border hover:border-accent/40 hover:text-accent"
+              }`}
+            >
+              {action}
+            </button>
           ))}
         </div>
-        <div className="relative ml-auto">
-          <Icon name="search" size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search logs…" className="input-claude pl-9 w-[240px] h-9" />
+
+        <div className="relative group">
+          <Icon 
+            name="search" 
+            size={14} 
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone group-focus-within:text-accent transition-colors" 
+          />
+          <input 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            placeholder="Search by tag, ID, or reason..."
+            className="input-claude pl-10 w-full md:w-[320px] h-10 shadow-none" 
+          />
         </div>
-      </div>
+      </section>
 
       {isLoading ? (
-        <div className="card-elevated p-10 text-center text-stone text-[14px] animate-pulse">Loading logs…</div>
-      ) : filtered.length === 0 ? (
-        <EmptyState icon="shield" title={logs.length === 0 ? "The ledger is clean." : "Nothing matches."}
-          description={logs.length === 0 ? "When moderators take action in Discord, it shows up here." : "Try a different keyword or action filter."} />
+        <div className="card-elevated p-20 text-center flex flex-col items-center gap-4">
+          <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
+          <p className="text-stone text-[14px]">Accessing audit logs...</p>
+        </div>
+      ) : filteredLogs.length === 0 ? (
+        <EmptyState 
+          icon="shield" 
+          title={logs.length === 0 ? "The ledger is pristine" : "No entries matched"}
+          description={logs.length === 0 
+            ? "Administrative actions taken in Discord will appear here automatically." 
+            : "Refine your search or filter to locate specific events."} 
+        />
       ) : (
-        <div className="card-elevated overflow-hidden">
-          <div className="grid grid-cols-[100px_1fr_1fr_1fr_180px] gap-0 px-5 py-3 border-b border-border bg-background/60 text-[10.5px] uppercase tracking-wider text-stone font-medium">
-            <div>Action</div><div>Target</div><div>Moderator</div><div>Reason</div><div>Time</div>
+        <div className="card-elevated overflow-hidden border-none shadow-sm">
+          <header className="grid grid-cols-[120px_1fr_1fr_1fr_180px] px-6 py-4 bg-secondary/30 border-b border-border text-[11px] uppercase tracking-widest text-stone font-bold">
+            <div>Action</div>
+            <div>Target</div>
+            <div>Moderator</div>
+            <div>Justification</div>
+            <div className="text-right">Timestamp</div>
+          </header>
+
+          <div className="divide-y divide-border/50">
+            {filteredLogs.map((log) => (
+              <article key={log.id} className="grid grid-cols-[120px_1fr_1fr_1fr_180px] items-center px-6 py-4 hover:bg-secondary/20 transition-colors">
+                <div>
+                  <span className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold tracking-tight border flex items-center gap-1.5 w-fit ${LOG_STYLES[log.action]?.color}`}>
+                    <Icon name={LOG_STYLES[log.action]?.icon || "shield"} size={11} strokeWidth={3} />
+                    {log.action}
+                  </span>
+                </div>
+
+                <div className="min-w-0 pr-4">
+                  <div className="text-[13.5px] font-mono text-foreground font-bold truncate">
+                    {log.target_tag || log.target_id}
+                  </div>
+                </div>
+
+                <div className="min-w-0 pr-4">
+                  <div className="text-[13px] text-olive font-semibold truncate">
+                    {log.moderator_tag || log.moderator_id}
+                  </div>
+                </div>
+
+                <div className="min-w-0 pr-6">
+                  <div className="text-[13px] text-stone font-medium truncate">
+                    {log.reason || "No formal justification recorded"}
+                  </div>
+                  {log.duration && (
+                    <div className="text-[10px] text-accent font-bold mt-0.5">
+                      Span: {log.duration}
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-[12px] text-stone font-medium text-right tabular-nums">
+                  {new Date(log.created_at).toLocaleString(undefined, { 
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                  })}
+                </div>
+              </article>
+            ))}
           </div>
-          {filtered.map((l, i) => (
-            <div key={l.id} className={`row-hover grid grid-cols-[100px_1fr_1fr_1fr_180px] items-center px-5 py-3.5 ${i < filtered.length - 1 ? "border-b border-border" : ""}`}>
-              <div>
-                <span className={`badge-warm ${actionColors[l.action] || "bg-secondary text-olive"} flex items-center gap-1 w-fit`}>
-                  <Icon name={actionIcons[l.action] as Parameters<typeof Icon>[0]["name"] || "shield"} size={10} strokeWidth={2} />
-                  {l.action}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <div className="text-[13px] font-mono text-foreground truncate">{l.target_tag || l.target_id}</div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-[13px] text-olive truncate">{l.moderator_tag || l.moderator_id}</div>
-              </div>
-              <div className="min-w-0 pr-4">
-                <div className="text-[13px] text-stone truncate">{l.reason || "No reason provided"}</div>
-                {l.duration && <div className="text-[11px] text-stone mt-0.5">Duration: {l.duration}</div>}
-              </div>
-              <div className="text-[12px] text-stone">{new Date(l.created_at).toLocaleString()}</div>
-            </div>
-          ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

@@ -3,131 +3,187 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { profileService, UserProfile } from "@/lib/services/profile";
 import { toast } from "sonner";
-
-interface Profile {
-  id: string; display_name: string; bio: string; avatar_url: string;
-}
 
 export default function Profile() {
   const { user } = useAuth();
-  const qc = useQueryClient();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [newPassword, setNewPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // -- Initial Fetch ---------------------------------------------------------
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("*").eq("id", user.id).single().then(({ data }) => {
-      setProfile(data);
-      setDisplayName(data?.display_name || user.user_metadata?.full_name || "");
-      setBio(data?.bio || "");
-      setLoading(false);
-    });
+    
+    profileService.getProfile(user.id)
+      .then((data) => {
+        if (data) {
+          setDisplayName(data.display_name || user.user_metadata?.full_name || "");
+          setBio(data.bio || "");
+        }
+      })
+      .finally(() => setIsLoading(false));
   }, [user]);
 
-  const saveMut = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("Not logged in");
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        display_name: displayName,
-        bio,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => { toast.success("Profile saved"); },
-    onError: (e: Error) => toast.error("Save failed", { description: e.message }),
+  // -- Mutations -------------------------------------------------------------
+
+  const { mutate: saveProfile, isPending: isSavingProfile } = useMutation({
+    mutationFn: () => profileService.updateProfile({ 
+      id: user!.id, 
+      display_name: displayName, 
+      bio,
+      avatar_url: "" // Future expansion
+    }),
+    onSuccess: () => toast.success("Identity updated successfully"),
+    onError: (error) => toast.error("Update failed", { description: error.message }),
   });
 
-  const changePasswordMut = useMutation({
-    mutationFn: async ({ current, next }: { current: string; next: string }) => {
-      const { error } = await supabase.auth.updateUser({ password: next });
-      if (error) throw error;
+  const { mutate: updatePassword, isPending: isUpdatingPassword } = useMutation({
+    mutationFn: () => profileService.updatePassword(newPassword),
+    onSuccess: () => {
+      setNewPassword("");
+      toast.success("Security credentials updated");
     },
-    onSuccess: () => toast.success("Password changed"),
-    onError: (e: Error) => toast.error("Password change failed", { description: e.message }),
+    onError: (error) => toast.error("Update failed", { description: error.message }),
   });
 
-  const [curPass, setCurPass] = useState("");
-  const [newPass, setNewPass] = useState("");
+  const { mutate: globalSignOut } = useMutation({
+    mutationFn: () => profileService.signOutGlobal(),
+    onSuccess: () => toast.info("All sessions terminated"),
+  });
 
-  const initials = displayName.slice(0, 2).toUpperCase() || "??";
+  // -- Derived State ---------------------------------------------------------
+
+  const initials = (displayName || user?.email || "??").slice(0, 2).toUpperCase();
 
   return (
-    <div className="px-10 py-10 max-w-[800px] mx-auto">
-      <PageHeader eyebrow="Account" title="Your profile." />
+    <main className="max-w-[800px] mx-auto px-8 py-12 space-y-10">
+      <PageHeader 
+        eyebrow="Account Settings" 
+        title="Identity & Security"
+        subtitle="Manage your personal information, update security credentials, and control active sessions." 
+      />
 
-      {loading ? (
-        <div className="text-stone animate-pulse text-[14px]">Loading…</div>
+      {isLoading ? (
+        <div className="card-elevated p-20 text-center flex flex-col items-center gap-4">
+          <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
+          <p className="text-stone text-[14px]">Synchronizing profile...</p>
+        </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {/* Avatar + name */}
-          <div className="card-elevated p-7">
-            <div className="text-[10.5px] uppercase tracking-wider text-stone font-medium mb-5">Identity</div>
-            <div className="flex items-center gap-5 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-foreground text-background flex items-center justify-center font-serif-display text-[26px]">
+        <div className="space-y-8">
+          {/* Identity Section */}
+          <section className="card-elevated p-8 border-none shadow-sm space-y-8">
+            <header className="flex items-center justify-between">
+              <h3 className="text-[11px] uppercase tracking-widest text-stone font-bold">Public Identity</h3>
+              <span className="text-[11px] text-stone font-medium">Last sync: {new Date().toLocaleDateString()}</span>
+            </header>
+
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-2xl bg-foreground text-background flex items-center justify-center font-serif-display text-[32px] shadow-lg">
                 {initials}
               </div>
               <div>
-                <div className="text-[16px] font-medium text-foreground">{displayName || "No name set"}</div>
-                <div className="text-[13px] text-stone">{user?.email}</div>
+                <h4 className="text-[18px] font-bold text-foreground">{displayName || "Anonymous User"}</h4>
+                <p className="text-[14px] text-stone font-medium">{user?.email}</p>
               </div>
             </div>
-            <div className="space-y-4">
-              <label className="block">
-                <span className="text-[12px] font-medium text-dark-warm mb-1.5 block">Display name</span>
-                <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="input-claude" placeholder="Your name" />
-              </label>
-              <label className="block">
-                <span className="text-[12px] font-medium text-dark-warm mb-1.5 block">Bio <span className="text-stone font-normal">(optional)</span></span>
-                <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} className="input-claude resize-none" placeholder="A few words about yourself" />
-              </label>
-            </div>
-            <div className="flex justify-end mt-5 pt-5 border-t border-border">
-              <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}
-                className="h-10 px-4 rounded-lg bg-accent text-accent-foreground text-[13px] font-medium hover:bg-[hsl(var(--brand-hover))] flex items-center gap-1.5 disabled:opacity-60">
-                <Icon name="save" size={13} strokeWidth={2} /> {saveMut.isPending ? "Saving…" : "Save profile"}
-              </button>
-            </div>
-          </div>
 
-          {/* Security */}
-          <div className="card-elevated p-7">
-            <div className="text-[10.5px] uppercase tracking-wider text-stone font-medium mb-5">Security</div>
-            <div className="space-y-4">
-              <label className="block">
-                <span className="text-[12px] font-medium text-dark-warm mb-1.5 block">New password</span>
-                <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} className="input-claude" placeholder="Min. 8 characters" />
-              </label>
-            </div>
-            <div className="flex justify-end mt-5 pt-5 border-t border-border">
-              <button onClick={() => changePasswordMut.mutate({ current: curPass, next: newPass })} disabled={changePasswordMut.isPending || newPass.length < 8}
-                className="h-10 px-4 rounded-lg bg-card border border-border text-foreground text-[13px] font-medium hover:bg-secondary flex items-center gap-1.5 disabled:opacity-60">
-                <Icon name="lock" size={13} /> {changePasswordMut.isPending ? "Updating…" : "Change password"}
-              </button>
-            </div>
-          </div>
+            <div className="grid gap-6">
+              <div className="space-y-2">
+                <label className="text-[12px] font-bold text-dark-warm ml-1">Display Name</label>
+                <input 
+                  value={displayName} 
+                  onChange={(e) => setDisplayName(e.target.value)} 
+                  className="input-claude h-11" 
+                  placeholder="How you appear to others..." 
+                />
+              </div>
 
-          {/* Danger zone */}
-          <div className="card-elevated p-7 border-destructive/20">
-            <div className="text-[10.5px] uppercase tracking-wider text-stone font-medium mb-5">Danger zone</div>
-            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <label className="text-[12px] font-bold text-dark-warm ml-1">
+                  Personal Bio <span className="text-stone font-normal font-medium ml-1">(Optional)</span>
+                </label>
+                <textarea 
+                  value={bio} 
+                  onChange={(e) => setBio(e.target.value)} 
+                  rows={4} 
+                  className="input-claude resize-none p-4" 
+                  placeholder="Tell the community a bit about yourself..." 
+                />
+              </div>
+            </div>
+
+            <footer className="flex justify-end pt-6 border-t border-border">
+              <button 
+                onClick={() => saveProfile()} 
+                disabled={isSavingProfile}
+                className="h-11 px-8 rounded-xl bg-accent text-accent-foreground text-[13px] font-bold hover:bg-[hsl(var(--brand-hover))] flex items-center gap-2.5 transition-all shadow-sm disabled:opacity-50"
+              >
+                {isSavingProfile ? (
+                  <span className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
+                ) : (
+                  <Icon name="save" size={14} strokeWidth={2.5} />
+                )}
+                {isSavingProfile ? "Saving Identity..." : "Update Profile"}
+              </button>
+            </footer>
+          </section>
+
+          {/* Security Section */}
+          <section className="card-elevated p-8 border-none shadow-sm space-y-8">
+            <header>
+              <h3 className="text-[11px] uppercase tracking-widest text-stone font-bold">Security Credentials</h3>
+            </header>
+
+            <div className="space-y-2 max-w-[400px]">
+              <label className="text-[12px] font-bold text-dark-warm ml-1">New Password</label>
+              <input 
+                type="password" 
+                value={newPassword} 
+                onChange={(e) => setNewPassword(e.target.value)} 
+                className="input-claude h-11" 
+                placeholder="Minimum 8 characters..." 
+              />
+            </div>
+
+            <footer className="flex justify-end pt-6 border-t border-border">
+              <button 
+                onClick={() => updatePassword()} 
+                disabled={isUpdatingPassword || newPassword.length < 8}
+                className="h-11 px-8 rounded-xl bg-card border border-border text-foreground text-[13px] font-bold hover:bg-secondary flex items-center gap-2.5 transition-all disabled:opacity-50"
+              >
+                <Icon name="lock" size={14} strokeWidth={2.5} className="text-stone" />
+                Change Password
+              </button>
+            </footer>
+          </section>
+
+          {/* Danger Zone */}
+          <section className="card-elevated p-8 border-none shadow-sm bg-destructive/5 rounded-3xl">
+            <header className="mb-6">
+              <h3 className="text-[11px] uppercase tracking-widest text-destructive font-bold">Access Control</h3>
+            </header>
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <div className="text-[13.5px] font-medium text-foreground">Sign out everywhere</div>
-                <div className="text-[12px] text-stone">Ends all active sessions across devices.</div>
+                <h4 className="text-[15px] font-bold text-foreground">Global Sign Out</h4>
+                <p className="text-[13px] text-stone font-medium mt-1">
+                  Terminate all active sessions across all devices and browsers immediately.
+                </p>
               </div>
-              <button onClick={() => supabase.auth.signOut({ scope: "global" }).then(() => toast.info("Signed out everywhere"))}
-                className="h-9 px-3.5 rounded-lg bg-card border border-destructive/30 text-destructive text-[12.5px] font-medium hover:bg-destructive/10 transition-colors">
-                Sign out all
+              <button 
+                onClick={() => globalSignOut()}
+                className="h-10 px-6 rounded-xl bg-background border border-destructive/20 text-destructive text-[13px] font-bold hover:bg-destructive hover:text-white transition-all shadow-sm"
+              >
+                Invalidate All Sessions
               </button>
             </div>
-          </div>
+          </section>
         </div>
       )}
-    </div>
+    </main>
   );
 }

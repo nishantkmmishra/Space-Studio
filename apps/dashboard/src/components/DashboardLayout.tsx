@@ -1,16 +1,23 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Icon, type IconName } from "./Icon";
 import { useAuth } from "@/lib/auth";
+import { useMemo } from "react";
 
-const nav: { to: string; icon: IconName; label: string }[] = [
+interface NavItem {
+  to: string;
+  icon: IconName;
+  label: string;
+}
+
+const MAIN_NAV: NavItem[] = [
   { to: "/app/knowledge", icon: "book",     label: "Knowledge Base" },
-  { to: "/app/chats",     icon: "message",  label: "Chats" },
-  { to: "/app/members",   icon: "users",    label: "Members" },
-  { to: "/app/modlogs",   icon: "shield",   label: "Mod Logs" },
-  { to: "/app/console",   icon: "terminal", label: "Console" },
+  { to: "/app/chats",     icon: "message",  label: "Conversations" },
+  { to: "/app/members",   icon: "users",    label: "Members Registry" },
+  { to: "/app/modlogs",   icon: "shield",   label: "Audit Logs" },
+  { to: "/app/console",   icon: "terminal", label: "Bot Health" },
 ];
 
-const bottomNav: { to: string; icon: IconName; label: string }[] = [
+const ACCOUNT_NAV: NavItem[] = [
   { to: "/app/profile",   icon: "user",     label: "Profile" },
   { to: "/app/settings",  icon: "settings", label: "Settings" },
 ];
@@ -19,9 +26,14 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Guest";
-  const initials = displayName.slice(0, 1).toUpperCase();
-  const email = user?.email || "";
+  const userMeta = useMemo(() => {
+    const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Operator";
+    return {
+      name,
+      email: user?.email || "",
+      initials: name.slice(0, 1).toUpperCase()
+    };
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -29,102 +41,113 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar */}
-      <aside className="w-[232px] shrink-0 bg-card border-r border-border flex flex-col">
-        {/* Brand */}
-        <div className="px-5 pt-6 pb-5 border-b border-border">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center">
-              <Icon name="sparkle" size={15} strokeWidth={1.8} />
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      {/* Sidebar Navigation */}
+      <aside className="w-[260px] shrink-0 bg-card border-r border-border flex flex-col shadow-sm">
+        {/* Brand Identity */}
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+              <Icon name="sparkle" size={18} strokeWidth={2.5} />
             </div>
             <div>
-              <div className="font-serif-display text-[17px] leading-none text-foreground">Space</div>
-              <div className="text-[10.5px] text-stone mt-0.5 tracking-wide uppercase">Discord control</div>
+              <div className="font-serif-display text-[20px] leading-tight text-foreground">Space</div>
+              <div className="text-[10px] text-stone uppercase tracking-widest font-bold mt-0.5">Management Studio</div>
             </div>
           </div>
         </div>
 
-        {/* Workspace */}
-        <div className="px-3 pt-4">
-          <div className="text-[10.5px] uppercase tracking-wider text-stone px-2 mb-2 font-medium">Workspace</div>
-          <div className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg bg-secondary/50 border border-border text-left">
-            <div className="w-7 h-7 rounded-md bg-secondary border border-border-warm flex items-center justify-center text-[11px] font-mono text-olive">SP</div>
+        {/* Instance Selector / Status */}
+        <div className="px-4 mb-8">
+          <div className="group relative w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-secondary/40 border border-border/50 hover:border-accent/30 transition-all cursor-default">
+            <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-[11px] font-bold text-accent shadow-sm">
+              SP
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-foreground truncate">space.dev</div>
-              <div className="text-[10.5px] text-stone truncate">Connected</div>
+              <div className="text-[13px] font-bold text-foreground truncate">space.io</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] text-stone font-bold uppercase tracking-wider">Synchronized</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="px-3 pt-5 flex-1 flex flex-col">
-          <div className="text-[10.5px] uppercase tracking-wider text-stone px-2 mb-2 font-medium">Manage</div>
-          <div className="flex flex-col gap-0.5">
-            {nav.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] font-medium transition-colors ${
-                    isActive
-                      ? "bg-foreground text-background"
-                      : "text-olive hover:bg-secondary hover:text-foreground"
-                  }`
-                }
-              >
-                <Icon name={item.icon} size={15} strokeWidth={1.7} />
-                <span>{item.label}</span>
-              </NavLink>
+        {/* Navigation Groups */}
+        <nav className="flex-1 px-4 space-y-8 overflow-y-auto scrollbar-hide pb-6">
+          <NavGroup title="Intelligence">
+            {MAIN_NAV.map((item) => (
+              <SidebarLink key={item.to} {...item} />
             ))}
-          </div>
+          </NavGroup>
 
-          <div className="mt-auto">
-            <div className="text-[10.5px] uppercase tracking-wider text-stone px-2 mb-2 font-medium">Account</div>
-            <div className="flex flex-col gap-0.5">
-              {bottomNav.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] font-medium transition-colors ${
-                      isActive
-                        ? "bg-foreground text-background"
-                        : "text-olive hover:bg-secondary hover:text-foreground"
-                    }`
-                  }
-                >
-                  <Icon name={item.icon} size={15} strokeWidth={1.7} />
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] font-medium text-olive hover:bg-secondary hover:text-foreground transition-colors"
-              >
-                <Icon name="logout" size={15} strokeWidth={1.7} />
-                <span>Sign out</span>
-              </button>
-            </div>
-          </div>
+          <NavGroup title="Account">
+            {ACCOUNT_NAV.map((item) => (
+              <SidebarLink key={item.to} {...item} />
+            ))}
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[13.5px] font-bold text-stone hover:bg-destructive/5 hover:text-destructive transition-all"
+            >
+              <Icon name="logout" size={16} strokeWidth={2.5} />
+              <span>Sign Out</span>
+            </button>
+          </NavGroup>
         </nav>
 
-        {/* Footer user */}
-        <div className="m-3 p-2.5 rounded-xl border border-border bg-background flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center font-serif-display text-[13px]">
-            {initials}
+        {/* User Context Footer */}
+        <footer className="p-4 mt-auto border-t border-border bg-secondary/10">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center font-serif-display text-[15px] font-bold shadow-md">
+              {userMeta.initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold text-foreground truncate">{userMeta.name}</div>
+              <div className="text-[10.5px] text-stone font-medium truncate">{userMeta.email}</div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[12.5px] font-medium text-foreground truncate">{displayName}</div>
-            <div className="text-[10.5px] text-stone truncate">{email}</div>
-          </div>
-        </div>
+        </footer>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
-        <Outlet />
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 relative bg-background/50">
+        <div className="absolute inset-0 overflow-y-auto scroll-smooth">
+          <Outlet />
+        </div>
       </main>
     </div>
+  );
+}
+
+// -- Subcomponents ---------------------------------------------------------
+
+function NavGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <h3 className="px-4 text-[10px] uppercase tracking-[0.2em] text-stone font-black mb-3">
+        {title}
+      </h3>
+      <div className="space-y-0.5">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SidebarLink({ to, icon, label }: NavItem) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => `
+        flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13.5px] font-bold transition-all duration-200
+        ${isActive 
+          ? "bg-foreground text-background shadow-lg translate-x-1" 
+          : "text-stone hover:bg-secondary hover:text-foreground hover:translate-x-1"
+        }
+      `}
+    >
+      <Icon name={icon} size={16} strokeWidth={isActive ? 2.5 : 2} />
+      <span>{label}</span>
+    </NavLink>
   );
 }

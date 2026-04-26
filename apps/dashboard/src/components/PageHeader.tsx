@@ -1,18 +1,18 @@
 import { type ReactNode } from "react";
 
 interface PageHeaderProps {
-  eyebrow: string;
+  category: string;
   title: string;
   subtitle?: string;
   children?: ReactNode;
 }
 
-export function PageHeader({ eyebrow, title, subtitle, children }: PageHeaderProps) {
+export function PageHeader({ category, title, subtitle, children }: PageHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4 mb-8">
       <div>
         <div className="text-[10.5px] uppercase tracking-[0.18em] text-stone font-medium mb-1.5">
-          {eyebrow}
+          {category}
         </div>
         <h1 className="font-serif-display text-[38px] leading-tight text-foreground tracking-tight">
           {title}
