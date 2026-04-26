@@ -4,13 +4,7 @@
 
 # Space Studio
 
-Orchestrate AI-enhanced Discord community operations with precision through a centralized management studio.
-
----
-
-## Overview
-
-Space Studio is a production-grade administrative dashboard designed for governing Discord bot instances with integrated Retrieval-Augmented Generation (RAG) capabilities. By providing a human-in-the-loop audit layer, it enables community operators to curate knowledge bases, monitor real-time conversations, and refine AI reasoning to ensure high-fidelity interactions.
+Management interface for Discord community operations with integrated knowledge systems.
 
 ---
 
