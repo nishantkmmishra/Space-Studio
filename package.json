@@ -1,0 +1,15 @@
+{
+  "name": "space",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/dashboard"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@space/dashboard",
+    "dashboard": "npm run dev --workspace=@space/dashboard",
+    "build": "npm run build --workspace=@space/dashboard"
+  },
+  "devDependencies": {
+  }
+}
