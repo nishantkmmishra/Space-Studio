@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./docs/assets/logo.png" width="120" height="120" alt="Space Studio Logo" />
+</p>
+
 # Space Studio
 
 Orchestrate AI-enhanced Discord community operations with precision through a centralized management studio.

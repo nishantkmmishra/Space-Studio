@@ -47,11 +47,11 @@ export default function DashboardLayout() {
         {/* Brand Identity */}
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center shadow-lg transition-transform hover:scale-105">
-              <Icon name="sparkle" size={18} strokeWidth={2.5} />
+            <div className="w-10 h-10 rounded-xl bg-background border border-border overflow-hidden shadow-lg transition-transform hover:scale-105 flex items-center justify-center p-1">
+              <img src="/logo.png" alt="Space Studio Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <div className="font-serif-display text-[20px] leading-tight text-foreground">Space</div>
+              <div className="font-serif-display text-[20px] leading-tight text-foreground">Space Studio</div>
               <div className="text-[10px] text-stone uppercase tracking-widest font-bold mt-0.5">Management Studio</div>
             </div>
           </div>

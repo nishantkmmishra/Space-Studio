@@ -8,10 +8,10 @@ export default function Index() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/40">
         <div className="px-8 py-5 flex items-center justify-between max-w-[1400px] mx-auto">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <Icon name="sparkle" size={18} strokeWidth={2.5} />
+            <div className="w-10 h-10 rounded-xl bg-background border border-border overflow-hidden shadow-sm flex items-center justify-center p-1 group-hover:scale-105 transition-transform">
+              <img src="/logo.png" alt="Space Studio Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-serif-display text-[22px] tracking-tight">Space</span>
+            <span className="font-serif-display text-[24px] text-foreground tracking-tight">Space Studio</span>
           </Link>
           
           <nav className="flex items-center gap-6">
