@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/dashboard"
+    "apps/dashboard",
+    "apps/bot"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=@space/dashboard",
     "dashboard": "npm run dev --workspace=@space/dashboard",
+    "bot": "npm run dev --workspace=bot",
+    "bot:deploy": "npm run deploy --workspace=bot",
     "build": "npm run build --workspace=@space/dashboard"
   },
   "devDependencies": {

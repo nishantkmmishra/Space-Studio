@@ -6,6 +6,8 @@
 
 Management interface for Discord community operations with integrated knowledge systems.
 
+![Dashboard Preview](./docs/assets/dashboard_preview.png)
+
 ---
 
 ## Architecture
