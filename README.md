@@ -18,6 +18,13 @@ Space Studio is a production-grade administrative dashboard designed for governi
 
 The application follows a Service-Oriented Architecture (SOA) implemented with React 18 and Vite. It enforces a strict separation between the view layer and business logic to ensure scalability and testability.
 
+| Documentation | Description |
+| :--- | :--- |
+| [🏗️ Architecture](./docs/ARCHITECTURE.md) | Deep dive into the SOA layers, services, and intelligence patterns. |
+| [🛠️ Development](./docs/DEVELOPMENT.md) | Setup instructions, environment variables, and database initialization. |
+| [🤝 Contributing](./docs/CONTRIBUTING.md) | Coding standards, git workflow, and design philosophy. |
+| [📖 System Guide](./docs/SYSTEM_GUIDE.md) | Complete guide for building and integrating the dashboard, bot, and AI. |
+
 ### Technical Specifications
 - **Framework**: React 18 + Vite
 - **Data Orchestration**: TanStack Query v5 + Zustand
