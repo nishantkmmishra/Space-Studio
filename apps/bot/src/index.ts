@@ -1,19 +1,36 @@
+import { Events } from 'discord.js';
 import 'dotenv/config';
 import { client } from './client';
 import { interactionHandler } from './events/interactionCreate';
 import { supabase } from './services/supabase';
+import { logger } from './lib/logger';
 
-client.once('ready', () => {
-  console.log(`[SYSTEM] Bot ready as ${client.user?.tag}`);
-  console.log(`[SYSTEM] Environment: ${process.env.NODE_ENV || 'development'}`);
+logger.info('Starting Space Bot...');
+logger.info('Environment loaded', {
+  env: process.env.NODE_ENV || 'development',
+});
+logger.info('Connecting to Supabase...');
+logger.info('Groq AI Engine initialized', {
+  model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+});
+
+client.once(Events.ClientReady, (readyClient) => {
+  logger.success('Bot ready', { 
+    user: readyClient.user.tag,
+    id: readyClient.user.id,
+  });
 });
 
 // Register Event Handlers
-client.on(interactionHandler.name, (...args) => interactionHandler.execute(...args));
+client.on(Events.InteractionCreate, (interaction) => interactionHandler.execute(interaction));
 
-// Member Join Event (Example Integration)
-client.on('guildMemberAdd', async (member) => {
-  console.log(`[EVENT] New member joined: ${member.user.tag}`);
+// Member Join Event
+client.on(Events.GuildMemberAdd, async (member) => {
+  logger.info('Member joined', {
+    user: member.user.tag,
+    guild: member.guild.name,
+  });
+  
   try {
     const { error } = await supabase.from('members').upsert({
       user_id: member.id,
@@ -21,15 +38,19 @@ client.on('guildMemberAdd', async (member) => {
       joined_at: new Date().toISOString()
     });
     if (error) throw error;
-  } catch (err) {
-    console.error('[ERROR] Failed to log member join:', err);
+  } catch (err: any) {
+    logger.error('Failed to log member join', {
+      user: member.user.tag,
+      error: err.message,
+    });
   }
 });
 
 // Start the client
 if (!process.env.DISCORD_TOKEN) {
-  console.error('[ERROR] Missing DISCORD_TOKEN in environment');
+  logger.error('Missing DISCORD_TOKEN in environment');
   process.exit(1);
 }
 
+logger.info('Connecting to Discord...');
 client.login(process.env.DISCORD_TOKEN);

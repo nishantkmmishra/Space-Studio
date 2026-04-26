@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS guild_members (
 
 -- 4. Infrastructure Configuration
 CREATE TABLE IF NOT EXISTS guild_configs (
-    id TEXT PRIMARY KEY, -- guild_id
+    guild_id TEXT PRIMARY KEY,
     workspace_name TEXT DEFAULT 'Space Studio',
     bot_tone TEXT DEFAULT 'Warm & literary',
     welcome_message TEXT,

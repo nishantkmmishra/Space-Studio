@@ -83,9 +83,10 @@ export default function KnowledgeBase() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="card-elevated p-20 text-center flex flex-col items-center justify-center">
-          <div className="animate-spin h-6 w-6 border-2 border-accent border-t-transparent rounded-full mb-4" />
-          <p className="text-stone text-[14px]">Cataloging library...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-[220px] bg-card border border-border rounded-3xl animate-pulse" />
+          ))}
         </div>
       );
     }
@@ -120,80 +121,75 @@ export default function KnowledgeBase() {
     }
 
     return (
-      <div className="card-elevated overflow-hidden border-none shadow-sm">
-        <header className="grid grid-cols-[1fr_140px_140px_100px] gap-4 px-6 py-4 bg-secondary/30 border-b border-border text-[11px] uppercase tracking-widest text-stone font-semibold">
-          <div>Document</div>
-          <div>Category</div>
-          <div>Source</div>
-          <div className="text-right">Actions</div>
-        </header>
-
-        <div className="divide-y divide-border/50">
-          {filteredDocuments.map((doc) => (
-            <article 
-              key={doc.id} 
-              className="grid grid-cols-[1fr_140px_140px_100px] gap-4 items-center px-6 py-4 hover:bg-secondary/20 transition-colors group"
-            >
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center text-stone group-hover:text-accent transition-colors">
-                  <Icon name="file" size={18} />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-[14.5px] font-medium text-foreground truncate">{doc.title}</h3>
-                  <time className="text-[11px] text-stone tabular-nums">
-                    Added {new Date(doc.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </time>
-                </div>
-              </div>
-
-              <div>
-                <span className="badge-warm px-2.5 py-0.5 rounded-full bg-accent/5 text-accent border border-accent/10 text-[11px] font-medium">
-                  {doc.category || "General"}
-                </span>
-              </div>
-
-              <div className="text-[12.5px] text-stone truncate font-medium">
-                {doc.source || "—"}
-              </div>
-
-              <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredDocuments.map((doc) => (
+          <article 
+            key={doc.id} 
+            className="bg-card border border-border rounded-3xl p-7 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-2">
                 <button 
                   onClick={() => setActiveDocument(doc)}
-                  className="w-8 h-8 rounded-lg text-stone hover:bg-background hover:text-foreground flex items-center justify-center border border-transparent hover:border-border transition-all"
-                  title="Edit entry"
+                  className="w-8 h-8 rounded-xl bg-background border border-border text-stone hover:text-foreground flex items-center justify-center transition-all shadow-sm"
                 >
-                  <Icon name="edit" size={15} />
+                  <Icon name="edit" size={14} />
                 </button>
                 <button 
                   onClick={() => handleDelete(doc.id)}
-                  className="w-8 h-8 rounded-lg text-stone hover:bg-destructive/10 hover:text-destructive flex items-center justify-center border border-transparent hover:border-destructive/20 transition-all"
-                  title="Delete entry"
+                  className="w-8 h-8 rounded-xl bg-background border border-border text-stone hover:text-destructive flex items-center justify-center transition-all shadow-sm"
                 >
-                  <Icon name="trash" size={15} />
+                  <Icon name="trash" size={14} />
                 </button>
               </div>
-            </article>
-          ))}
-        </div>
+            </div>
+
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-secondary/50 flex items-center justify-center text-stone group-hover:text-primary transition-colors border border-border/50">
+                <Icon name="file" size={24} strokeWidth={1.5} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1 block">
+                  {doc.category || "General"}
+                </span>
+                <h3 className="text-[15px] font-black text-foreground truncate">{doc.title}</h3>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-stone font-medium leading-relaxed line-clamp-3 mb-6 opacity-80">
+              {doc.content.substring(0, 150)}...
+            </p>
+
+            <div className="flex items-center justify-between mt-auto pt-6 border-t border-border/50">
+              <div className="flex items-center gap-2">
+                <Icon name="sparkle" size={12} className="text-primary" />
+                <span className="text-[11px] font-bold text-stone">RAG Ready</span>
+              </div>
+              <time className="text-[11px] font-mono text-stone opacity-40">
+                {new Date(doc.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+              </time>
+            </div>
+          </article>
+        ))}
       </div>
     );
   };
 
   return (
-    <main className="max-w-[1200px] mx-auto px-8 py-12 space-y-8">
-      <PageHeader 
-        category="Knowledge Base" 
-        title="Source Material"
-        subtitle="Maintain the documents and data sources used to calibrate your AI response engine."
-      >
+    <main className="space-y-10 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-[24px] font-black tracking-tighter text-foreground">Source Material</h2>
+          <p className="text-[13px] text-stone font-medium">Maintain the documents and data sources used to calibrate your AI response engine.</p>
+        </div>
         <button 
           onClick={() => setIsCreating(true)}
-          className="h-10 px-5 rounded-xl bg-foreground text-background text-[13px] font-semibold hover:opacity-90 transition-all flex items-center gap-2 shadow-sm"
+          className="h-12 px-8 rounded-2xl bg-foreground text-background text-[13px] font-black hover:opacity-90 transition-all flex items-center gap-3 shadow-2xl shadow-foreground/10"
         >
-          <Icon name="plus" size={14} strokeWidth={2.5} /> 
-          New Document
+          <Icon name="plus" size={16} strokeWidth={3} /> 
+          Index New Document
         </button>
-      </PageHeader>
+      </div>
 
       <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">

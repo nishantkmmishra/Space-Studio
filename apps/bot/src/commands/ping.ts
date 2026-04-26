@@ -1,12 +1,12 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 export const pingCommand = {
-  data: {
-    name: 'ping',
-    description: 'Replies with Pong'
-  },
+  data: new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Replies with Pong'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const sent = await interaction.reply({ content: 'Pinging...', fetchReply: true });
+    await interaction.reply({ content: 'Pinging...' });
+    const sent = await interaction.fetchReply();
     const latency = sent.createdTimestamp - interaction.createdTimestamp;
     
     await interaction.editReply(`Pong! 🏓\nLatency: ${latency}ms\nAPI Latency: ${Math.round(interaction.client.ws.ping)}ms`);

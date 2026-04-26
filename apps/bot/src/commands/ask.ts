@@ -1,40 +1,48 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { supabase } from '../services/supabase';
+import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { askAI } from '../services/ai';
+import { logger } from '../lib/logger';
 
 export const askCommand = {
-  data: {
-    name: 'ask',
-    description: 'Ask the community intelligence engine a question',
-    options: [
-      {
-        name: 'query',
-        type: 3, // String
-        description: 'The question you want to ask',
-        required: true
-      }
-    ]
-  },
+  data: new SlashCommandBuilder()
+    .setName('ask')
+    .setDescription('Ask the community intelligence engine a question')
+    .addStringOption(option =>
+      option.setName('query')
+        .setDescription('The question you want to ask')
+        .setRequired(true)
+    ),
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query', true);
     
+    logger.info('AI query received', {
+      user: interaction.user.tag,
+      query,
+    });
+
     await interaction.deferReply();
 
     try {
-      // 1. Generate Embedding (Skeleton)
-      // 2. Perform Vector Search (Skeleton)
-      // 3. Query LLM (Skeleton)
-      
+      const answer = await askAI(query);
+
       const responseEmbed = new EmbedBuilder()
         .setColor(0x0099FF)
-        .setTitle('Intelligence Response')
-        .setDescription('This is a skeleton response. AI integration is pending configuration.')
+        .setTitle('🛰️ Intelligence Response')
+        .setDescription(answer || 'The engine returned an empty response.')
         .addFields({ name: 'Query', value: query })
-        .setTimestamp();
+        .setTimestamp()
+        .setFooter({ text: 'Powered by OpenRouter AI' });
 
       await interaction.editReply({ embeds: [responseEmbed] });
-    } catch (error) {
-      console.error('[AI ERROR]', error);
-      await interaction.editReply('The intelligence engine encountered an error.');
+      logger.success('AI response sent', {
+        user: interaction.user.tag,
+      });
+    } catch (error: any) {
+      logger.error('AI engine error', {
+        user: interaction.user.tag,
+        query,
+        error: error.message,
+      });
+      await interaction.editReply('The intelligence engine encountered an error while processing your transmission.');
     }
   }
 };

@@ -57,17 +57,17 @@ export default function Members() {
   // -- Render Helpers --------------------------------------------------------
 
   return (
-    <main className="max-w-[1240px] mx-auto px-10 py-12 space-y-8">
-      <PageHeader 
-        category="Community" 
-        title="Members"
-        subtitle="Manage user roles, track behavior, and maintain server integrity."
-      >
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border text-[13px] font-bold text-stone shadow-sm">
-          <Icon name="users" size={14} className="text-accent" />
-          {members.length.toLocaleString()} Members
+    <main className="space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-[24px] font-black tracking-tighter text-foreground">Community Registry</h2>
+          <p className="text-[13px] text-stone font-medium">Manage user roles, track behavior, and maintain server integrity.</p>
         </div>
-      </PageHeader>
+        <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-card border border-border text-[13px] font-black text-stone shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          {members.length.toLocaleString()} Active Members
+        </div>
+      </div>
 
       <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
@@ -115,77 +115,90 @@ export default function Members() {
             : "Adjust your filters or search term to find specific members."} 
         />
       ) : (
-        <div className="card-elevated overflow-hidden border-none shadow-sm">
-        <div className="grid grid-cols-[2fr_130px_100px_130px_100px] px-6 py-4 bg-secondary/30 border-b border-border text-[11px] uppercase tracking-widest text-stone font-bold">
-          <div>Member</div>
-          <div>Role</div>
-          <div>Warnings</div>
-          <div>Joined</div>
-          <div className="text-right">Actions</div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-[200px] bg-card border border-border rounded-3xl animate-pulse" />
+          ))}
         </div>
-
-          <div className="divide-y divide-border/50">
-            {filteredMembers.map((member) => (
-              <div key={member.id} className="grid grid-cols-[2fr_130px_100px_130px_100px] items-center px-6 py-4 hover:bg-secondary/20 transition-colors group">
-                <div className="flex items-center gap-4 min-w-0">
-                  {member.avatar_url ? (
-                    <img src={member.avatar_url} alt="" className="w-10 h-10 rounded-xl border border-border shadow-sm" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center text-[14px] font-bold border border-border shadow-sm">
-                      {member.username?.[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="text-[14.5px] font-bold text-foreground truncate">{member.username}</div>
-                    <div className="text-[11px] text-stone truncate max-w-[200px] font-medium">{member.notes || "No internal notes"}</div>
+      ) : filteredMembers.length === 0 ? (
+        <EmptyState 
+          icon="users" 
+          title={members.length === 0 ? "The registry is empty" : "No matches found"}
+          description={members.length === 0 
+            ? "Sync members from the Console to populate the directory." 
+            : "Adjust your filters or search term to find specific members."} 
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMembers.map((member) => (
+            <div 
+              key={member.id} 
+              className="bg-card border border-border rounded-3xl p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 group"
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    {member.avatar_url ? (
+                      <img src={member.avatar_url} alt="" className="w-14 h-14 rounded-2xl border-2 border-background shadow-lg" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-foreground text-background flex items-center justify-center text-xl font-black border-2 border-background shadow-lg">
+                        {member.username?.[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-background shadow-sm" />
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-black text-foreground tracking-tight">{member.username}</h3>
+                    <p className="text-[11px] font-mono text-stone opacity-60">ID: {member.id}</p>
                   </div>
                 </div>
+                <RoleBadge role={member.role} />
+              </div>
 
-                <div>
-                  <span className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold tracking-tight border ${
-                    member.role === "Admin" || member.role === "Owner" 
-                      ? "bg-accent/5 text-accent border-accent/20" 
-                      : member.role === "Moderator" ? "bg-foreground/5 text-foreground border-foreground/10" : "bg-secondary text-stone border-border"
-                  }`}>
-                    {member.role}
-                  </span>
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
+                  <p className="text-[12px] text-stone font-medium leading-relaxed italic">
+                    {member.notes || "No administrator notes added for this member."}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => adjustWarnings({ id: member.id, current: member.warnings, direction: "dec" })}
-                    className="w-6 h-6 rounded-lg bg-background border border-border text-stone hover:text-foreground hover:border-stone flex items-center justify-center transition-all"
-                  >
-                    <Icon name="minus" size={10} />
-                  </button>
-                  <span className={`font-mono text-[14px] font-bold w-6 text-center ${member.warnings > 0 ? "text-accent" : "text-stone"}`}>
-                    {member.warnings}
-                  </span>
-                  <button 
-                    onClick={() => adjustWarnings({ id: member.id, current: member.warnings, direction: "inc" })}
-                    className="w-6 h-6 rounded-lg bg-background border border-border text-stone hover:text-accent hover:border-accent flex items-center justify-center transition-all"
-                  >
-                    <Icon name="plus" size={10} />
-                  </button>
-                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => adjustWarnings({ id: member.id, current: member.warnings, direction: "dec" })}
+                      className="w-8 h-8 rounded-xl bg-background border border-border text-stone hover:text-foreground hover:border-stone flex items-center justify-center transition-all shadow-sm"
+                    >
+                      <Icon name="minus" size={12} />
+                    </button>
+                    <div className="text-center min-w-[24px]">
+                      <div className="text-[14px] font-black tabular-nums">{member.warnings}</div>
+                      <div className="text-[8px] uppercase tracking-tighter text-stone font-black opacity-40">Strikes</div>
+                    </div>
+                    <button 
+                      onClick={() => adjustWarnings({ id: member.id, current: member.warnings, direction: "inc" })}
+                      className="w-8 h-8 rounded-xl bg-background border border-border text-stone hover:text-accent hover:border-accent flex items-center justify-center transition-all shadow-sm"
+                    >
+                      <Icon name="plus" size={12} />
+                    </button>
+                  </div>
 
-                <div className="text-[12px] text-stone font-medium tabular-nums">
-                  {member.joined_at ? new Date(member.joined_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "—"}
-                </div>
-
-                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => setSelectedMember(member)}
-                    className="h-9 px-4 rounded-xl bg-background border border-border text-[12px] text-foreground font-bold hover:bg-secondary hover:border-stone transition-all flex items-center gap-2 shadow-sm"
+                    className="h-10 px-5 rounded-2xl bg-foreground text-background text-[12px] font-black hover:opacity-90 transition-all flex items-center gap-2 shadow-sm"
                   >
-                    <Icon name="edit" size={13} strokeWidth={2.5} />
+                    <Icon name="settings" size={14} />
                     Manage
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+
+              <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-[11px] text-stone font-bold uppercase tracking-widest opacity-40">
+                <span>Member Since</span>
+                <span>{member.joined_at ? new Date(member.joined_at).toLocaleDateString([], { month: 'short', year: 'numeric' }) : "—"}</span>
+              </div>
+            </div>
+          ))}
       )}
 
       {selectedMember && (
@@ -197,5 +210,23 @@ export default function Members() {
         />
       )}
     </main>
+  );
+}
+
+// -- Shared Subcomponents --------------------------------------------------
+
+function RoleBadge({ role }: { role: string }) {
+  const themes: Record<string, string> = {
+    Owner: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    Admin: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+    Moderator: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+    Patron: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    Member: "bg-stone-500/10 text-stone-500 border-stone-500/20",
+  };
+
+  return (
+    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${themes[role] || themes.Member}`}>
+      {role}
+    </span>
   );
 }

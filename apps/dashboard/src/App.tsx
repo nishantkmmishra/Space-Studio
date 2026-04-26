@@ -20,6 +20,8 @@ import Settings from "@/pages/Settings";
 import Console from "@/pages/Console";
 import NotFound from "@/pages/NotFound";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: 1 },
@@ -28,10 +30,11 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Sonner />
-        <BrowserRouter>
+    <ThemeProvider defaultTheme="dark" storageKey="space-ui-theme">
+      <AuthProvider>
+        <TooltipProvider>
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -58,9 +61,10 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
