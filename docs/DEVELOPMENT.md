@@ -11,8 +11,8 @@ This guide provides step-by-step instructions for setting up the Space developme
 
 ### 1. Repository Initialization
 ```bash
-git clone https://github.com/nishantkmmishra/spacebot.git
-cd spacebot
+git clone https://github.com/nishantkmmishra/Space-Studio.git
+cd Space-Studio
 npm install
 ```
 

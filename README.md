@@ -70,8 +70,8 @@ Granular control over neural model parameters, AI providers (OpenRouter, OpenAI,
 ### Installation
 1. Clone the repository and install dependencies:
    ```bash
-   git clone https://github.com/nishantkmmishra/spacebot.git
-   cd spacebot
+   git clone https://github.com/nishantkmmishra/Space-Studio.git
+   cd Space-Studio
    npm install
    ```
 
