@@ -1,60 +1,111 @@
-# 🌌 Space Studio
+# Space Studio
 
-> **A quiet management studio for louder communities.**
-
-Space is a premium, AI-powered operations center for Discord. It replaces chaotic bot commands with a high-fidelity, "Literary Salon" interface designed for clarity, precision, and calm.
-
-![Space Dashboard Hero](./docs/assets/console.png)
+Orchestrate AI-enhanced Discord community operations with precision through a centralized management studio.
 
 ---
 
-## ✨ Core Modules
+## Overview
 
-### 📚 Knowledge Base
-The source of truth for your AI. Curate documentation, manage categories, and refine the context used by your RAG engine to ensure accurate community support.
+Space Studio is a production-grade administrative dashboard designed for governing Discord bot instances with integrated Retrieval-Augmented Generation (RAG) capabilities. By providing a human-in-the-loop audit layer, it enables community operators to curate knowledge bases, monitor real-time conversations, and refine AI reasoning to ensure high-fidelity interactions.
+
+---
+
+## Architecture
+
+The application follows a Service-Oriented Architecture (SOA) implemented with React 18 and Vite. It enforces a strict separation between the view layer and business logic to ensure scalability and testability.
+
+### Technical Specifications
+- **Framework**: React 18 + Vite
+- **Data Orchestration**: TanStack Query v5 + Zustand
+- **Persistence**: Supabase (PostgreSQL)
+- **Security**: Row Level Security (RLS) + Authenticated Service Layers
+- **Real-time**: Supabase Broadcast + Server-Sent Events (SSE)
+
+---
+
+## Key Modules
+
+### Knowledge Orchestration
+Manage the source material for the RAG engine. Curate documents, edit passages in real-time, and observe as the bot's contextual awareness adapts instantly.
 ![Knowledge Base](./docs/assets/knowledge_base.png)
 
-### 💬 Conversations Audit
-Review every bot interaction in real-time. The "Refine" loop allows you to flag drifts and correct answers, training the bot for better future reasoning.
+### Conversation Audit & Refinement
+Review live bot-user interactions. The refinement interface allows operators to flag drifting logic and update responses, creating a feedback loop that improves future AI accuracy.
 ![Conversations](./docs/assets/chats.png)
 
-### 👥 Community & Moderation
-A unified registry of your members. Track behavior, manage roles, and maintain a professional ledger of all administrative interventions.
-![Members](./docs/assets/members.png)
-![Moderation Logs](./docs/assets/mod_logs.png)
+### Community Governance
+A unified registry for member management. Track user behavior, manage roles, and maintain an immutable ledger of administrative interventions and moderation events.
+![Member Registry](./docs/assets/members.png)
 
-### ⚙️ Infrastructure
-Fine-tune your bot's personality and intelligence providers. Support for OpenRouter, Gemini, and more, all managed from a single, beautiful dashboard.
-![Settings AI](./docs/assets/settings_ai.png)
-
----
-
-## 🛠️ Technical Stack
-
-- **Framework**: React 18 + Vite (SOA Architecture)
-- **State**: TanStack Query v5 + Zustand
-- **Persistence**: Supabase (PostgreSQL + RLS)
-- **Aesthetics**: Custom Design System (Warm Parchment + Serif Typography)
-- **Integrations**: Discord API (REST/SSE)
+### Infrastructure Configuration
+Granular control over neural model parameters, AI providers (OpenRouter, OpenAI, Groq), and Discord integration endpoints.
+![AI Configuration](./docs/assets/settings_ai.png)
 
 ---
 
-## 📖 Documentation Portal
+## Project Structure
 
-| Guide | Description |
+```text
+├── apps/dashboard/         # Vite-based management interface
+├── docs/assets/            # UI documentation and technical assets
+├── supabase/
+│   ├── schema.sql          # Database table definitions
+│   └── policies.sql        # Row Level Security (RLS) configuration
+└── package.json            # Workspace and dependency management
+```
+
+---
+
+## Setup and Installation
+
+### Prerequisites
+- Node.js v18.0.0+
+- NPM v9.0.0+
+- A Supabase project instance
+
+### Installation
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/nishantkmmishra/spacebot.git
+   cd spacebot
+   npm install
+   ```
+
+2. Initialize the database by executing the scripts in `/supabase` via the Supabase SQL Editor.
+
+### Local Development
+```bash
+npm run dev
+```
+
+---
+
+## Environment Configuration
+
+Configuration is managed via `.env.local` in `apps/dashboard/`.
+
+| Variable | Description |
 | :--- | :--- |
-| [🏗️ Architecture](./docs/ARCHITECTURE.md) | Deep dive into the SOA layers, services, and intelligence patterns. |
-| [🛠️ Development](./docs/DEVELOPMENT.md) | Setup instructions, environment variables, and database initialization. |
-| [🤝 Contributing](./docs/CONTRIBUTING.md) | Coding standards, git workflow, and design philosophy. |
+| `VITE_SUPABASE_URL` | Supabase project endpoint |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous API key |
+| `VITE_BOT_API_URL` | Endpoint for the companion bot instance |
+| `VITE_BOT_API_SECRET` | Authentication secret for secure bot communication |
 
 ---
 
-## 🚀 Getting Started
+## Security and Persistence
 
-1. **Install**: `npm install`
-2. **Configure**: Set up `.env.local` in `apps/dashboard` (see [Development Guide](./docs/DEVELOPMENT.md)).
-3. **Initialize**: Execute the scripts in the `/supabase` folder.
-4. **Launch**: `npm run dev`
+Space Studio prioritizes data integrity and secure access.
+- **Secret Management**: All AI provider keys and database secrets are managed via environment variables and never exposed to the client-side bundle.
+- **Row Level Security**: Every database table is protected by Supabase RLS policies, ensuring that authenticated users only access authorized guild data.
+- **Audit Trails**: All administrative actions are recorded in a persistent moderation log for accountability.
 
 ---
-*Developed with excellence by [Nishant Kumar Mishra](https://github.com/nishantkmmishra).*
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+Copyright © 2026 Operational Intelligence. Maintained by Nishant Kumar Mishra.
